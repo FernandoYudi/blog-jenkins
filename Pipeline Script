@@ -1,0 +1,57 @@
+pipeline {
+    agent any
+    
+    environment {
+        customPath = "C:\\WINDOWS\\SYSTEM32"
+        rubyPath = "C:\\Ruby32-x64\\bin"
+        netlifyPath = "C:\\Users\\ferna\\AppData\\Roaming\\npm"
+        PATH = "${customPath};${rubyPath};${netlifyPath};${env.PATH}"
+    }
+
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Passo 1: Checkout do repositório Git
+                git branch: 'main', credentialsId: 'gitcred-blog-jekyll', url: 'https://github.com/FernandoYudi/myblog-jekyll.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                // Passo 2: Executar o build do blog
+                bat 'bundle install' // ou qualquer outro comando de build
+                bat 'jekyll build'
+            }
+        }
+        
+        stage('Static Code Analysis') {
+            steps {
+                bat 'npm install'
+                bat 'npx eslint .'
+            }
+        }
+
+
+        stage('Deploy') {
+            steps {
+                // Passo 4: Implantação do blog em um servidor de produção
+                bat 'npm install -g netlify-cli' // Instalação do CLI do Netlify
+                withCredentials([string(credentialsId: 'netlify-token', variable: 'NETLIFY_AUTH_TOKEN')]) { // Autoriza o Netlify
+                    bat 'echo %NETLIFY_AUTH_TOKEN% | netlify login'
+                }
+                bat 'netlify deploy --prod --site a9afb84e-185a-4bd0-9bc9-081860441222' // Comando de implantação no Netlify
+            }
+        }
+        
+
+         stage('Notification') {
+                    steps {
+                        emailext body: 'A pipeline do blog foi concluída com sucesso!',
+                            subject: 'Notificação de Pipeline - Blog',
+                            to: 'fer.yudi@edu.unifil.br',
+                            from: 'jenkins@example.com'
+                    }
+        }
+    }
+}
