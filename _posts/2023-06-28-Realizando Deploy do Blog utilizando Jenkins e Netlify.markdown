@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Realizando Deploy do Blog utiliznado Jenkins e Netlify"
+title:  "Realizando Deploy do Blog utilizando Jenkins e Netlify"
 date:   2023-06-28 16:29:00 -0300
 categories: Jenkins, Tech
 ---
